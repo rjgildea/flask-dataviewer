@@ -1,6 +1,11 @@
 import os
 import time
 
+from PIL import Image
+import PIL.ImageOps
+
+import numpy as np
+
 from flask import Blueprint, request, after_this_request, send_file
 from flask_restful import Resource, Api, reqparse, abort
 from flask_jwt_simple import jwt_required
@@ -66,10 +71,14 @@ class DataCollectionImage(Resource):
         params.format = 'jpeg'
 
         if args.quality:
-            params.quality = args.quality
+            params.jpeg.quality = args.quality
 
         if args.binning:
             params.binning = args.binning
+
+        if args.threshold:
+            params.display = 'threshold'
+            params.brightness = 1000
 
         params.output_dir = '/tmp'
         params.prefix = str(time.time())
@@ -83,6 +92,36 @@ class DataCollectionImage(Resource):
                     os.remove(n)
 
             return response
+
+        if args.threshold:
+            thresh = Image.open(names[0])#.convert('RGBA')
+            thresh = PIL.ImageOps.autocontrast(thresh, cutoff=50, ignore=(255,255,255))
+
+            # data = np.array(thresh)
+            
+            # Invert
+            # data = 255 - data
+            
+            # Remove Red, Blue channels
+            # data[:,:,0] *=0
+            # data[:,:,2] *=0
+            # data = 255 - data
+
+            # Replace pixel value with another
+            # red, green, blue, alpha = data.T
+            # white_areas = (red == 255) & (blue == 255) & (green == 255)
+            # data[..., :-1][white_areas.T] = (255, 255, 255)
+            
+
+            # thresh = Image.fromarray(data).convert('RGB')
+
+            # Convert white to transparent
+            # thresh2 = thresh2.convert('RGBA')
+            # data = np.array(thresh2)
+            # data[:, :, 3] = (255 * (data[:, :, :3] != 255).any(axis=2)).astype(np.uint8)
+            # thresh2 = Image.fromarray(data)
+
+            thresh.save(names[0], quality=100)
 
 
         return send_file(names[0])
