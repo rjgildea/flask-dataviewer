@@ -1,5 +1,6 @@
 import os
 import ispyb
+import logging
 
 
 def get_dc(id):
@@ -12,7 +13,9 @@ def get_dc(id):
         
         dc = mx_acquisition.get_data_collection(id)
 
-        print dc.file_template_full_python
-        print dc.file_directory
+        logging.getLogger('image-service').debug('DC File Template: {}'.format(dc.file_template_full_python))
+        logging.getLogger('image-service').debug('DC File Directory: {}'.format(dc.file_directory))
+        # print dc.file_template_full_python
+        # print dc.file_directory
         return dc
 

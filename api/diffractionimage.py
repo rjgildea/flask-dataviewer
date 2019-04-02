@@ -1,5 +1,6 @@
 import os
 import time
+import logging
 
 from flask import Blueprint, request, after_this_request, send_file
 from flask_restful import Resource, Api, reqparse, abort
@@ -36,6 +37,7 @@ class DataCollectionImage(Resource):
 
         dc = get_dc(args.dcid)
         if dc is None:
+            logging.getLogger('image-service').error('No such data collection {}'.format(args.dcid))
             abort(400, message='No such data collection')
         
         ext = os.path.splitext(str(dc.file_template_full_python))[1][1:].strip().lower()
@@ -45,13 +47,16 @@ class DataCollectionImage(Resource):
             file = dc.file_template_full_python % args.image
 
 
-        print 'file', file, ext
+        logging.getLogger('image-service').info('Processing image number: {} from file: {}'.format(args.image, file))
+#        print 'file', file, ext
         
         if not os.path.exists(file):
+            logging.getLogger('image-service').error('File not found: {}'.format(file))
             abort(400, message='No such file')
 
         datablocks = DataBlockFactory.from_filenames([file], verbose=True)
         if not len(datablocks):
+            logging.getLogger('image-service').error('Could not parse data block')
             abort(400, message='Could not parse datablock')
 
         datablock = datablocks[0]
