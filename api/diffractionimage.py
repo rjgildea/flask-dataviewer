@@ -2,6 +2,9 @@ import os
 import time
 import logging
 
+from PIL import Image
+import PIL.ImageOps
+
 from flask import Blueprint, request, after_this_request, send_file
 from flask_restful import Resource, Api, reqparse, abort
 from flask_jwt_simple import jwt_required
@@ -71,10 +74,14 @@ class DataCollectionImage(Resource):
         params.format = 'jpeg'
 
         if args.quality:
-            params.quality = args.quality
+            params.jpeg.quality = args.quality
 
         if args.binning:
             params.binning = args.binning
+
+        if args.threshold:
+            params.display = 'threshold'
+            params.brightness = 1000
 
         params.output_dir = '/tmp'
         params.prefix = str(time.time())
@@ -88,6 +95,12 @@ class DataCollectionImage(Resource):
                     os.remove(n)
 
             return response
+
+        if args.threshold:
+            thresh = Image.open(names[0])#.convert('RGBA')
+            thresh = PIL.ImageOps.autocontrast(thresh, cutoff=50, ignore=(255,255,255))
+
+            thresh.save(names[0], quality=100)
 
 
         return send_file(names[0])
