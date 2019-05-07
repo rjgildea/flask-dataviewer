@@ -3,3 +3,4 @@ flask
 flask_restful
 flask_jwt_simple
 ispyb
+Pillow
