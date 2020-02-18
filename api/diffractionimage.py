@@ -83,8 +83,8 @@ class DataCollectionImage(Resource):
             params.display = 'threshold'
             params.brightness = 1000
 
-        params.output_dir = '/tmp'
-        params.prefix = str(time.time())
+        params.output.directory = '/tmp'
+        params.output.prefix = str(time.time())
         params.imageset_index = 0
         names = imageset_as_bitmaps(image, params)
 

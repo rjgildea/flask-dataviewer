@@ -1,7 +1,7 @@
 # Flask Dataviewer Application
 
 Provides a Flask web service to extract the images from nexus files. 
-It is based on dials to generate images. 
+It is based on dials to generate images (dials v2.1.3+). 
 Need to use dials.python to get the correct environment.
 
 gunicorn_runner allows the app to run on the command line but with worker threads.
