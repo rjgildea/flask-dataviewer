@@ -43,11 +43,11 @@ class DataCollectionImage(Resource):
             logging.getLogger('image-service').error('No such data collection {}'.format(args.dcid))
             abort(400, message='No such data collection')
         
-        ext = os.path.splitext(str(dc.file_template_full_python))[1][1:].strip().lower()
+        ext = os.path.splitext(str(dc['file_template_full_python']))[1][1:].strip().lower()
         if ext in h5exts:
-            file = str(dc.file_template_full_python)
+            file = str(dc['file_template_full_python'])
         else:
-            file = dc.file_template_full_python % args.image
+            file = dc['file_template_full_python'] % args.image
 
 
         logging.getLogger('image-service').info('Processing image number: {} from file: {}'.format(args.image, file))
