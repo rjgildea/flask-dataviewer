@@ -68,7 +68,8 @@ class DataCollectionImage(Resource):
         if ext in h5exts:
             image = imageset[(args.image-1):args.image]
         else:
-            image = imageset[0:1]
+            b0 = imageset.get_scan().get_batch_offset()
+            image = imageset[b0:b0+1]
 
         params = phil_scope.extract()
         params.format = 'jpeg'
