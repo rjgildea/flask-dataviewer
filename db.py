@@ -1,46 +1,40 @@
 import os
-import ispyb
+import re
+
+import ispyb.sqlalchemy
 import logging
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 
-def get_dc(id):
-    conf_file = os.getenv('ISPYB_CONFIG_FILE')
-    if conf_file is None:
-        return
+engine = create_engine(ispyb.sqlalchemy.url(), connect_args={"use_pure": True})
+Session = sessionmaker(bind=engine)
 
-    with ispyb.open(conf_file) as i:
-        mx_acquisition = i.mx_acquisition
-        
-        dc = mx_acquisition.get_data_collection(id)
+logger = logging.getLogger("image-service")
 
-        logging.getLogger('image-service').debug('DC File Template: {}'.format(dc.file_template_full_python))
-        logging.getLogger('image-service').debug('DC File Directory: {}'.format(dc.file_directory))
 
-        return dc
-
-def get_filepath_from_dc(id):
+def get_file_template_full(dcid):
     """
     From dials 3.4+ found that the mxaquisition object not working
     So this simpler version uses a different method to get datacollection info
     and only returns the filepath of interest
     """
-    filepath = None
 
-    conf_file = os.getenv('ISPYB_CONFIG_FILE')
-    if conf_file is None:
-        return
+    from ispyb.sqlalchemy import DataCollection
 
-    with ispyb.open(conf_file) as i:
-        mx_acquisition = i.mx_acquisition
-
-        records = mx_acquisition.retrieve_data_collection(id)
-
-        try:
-            filepath = os.path.join(records[0]['imgDir'], records[0]['fileTemplate'])
-            logging.getLogger('image-service').debug('DC File Template: {}'.format(filepath))
-        except TypeError:
-            logging.getLogger('image-service').error('No result from retrieve data collection for id: {}'.format(id))
-        except IndexError:
-            logging.getLogger('image-service').error('Result from retrieve data collection out of bounds for id: {}'.format(id))
-
-        return filepath
+    with Session() as session:
+        query = session.query(
+            DataCollection.imageDirectory, DataCollection.fileTemplate
+        ).filter(DataCollection.dataCollectionId == dcid)
+        dc = query.first()
+    if not dc:
+        logger.warning(f"Couldn't find data collection {dcid}")
+    file_template_full = os.path.join(dc.imageDirectory, dc.fileTemplate)
+    if "#" in file_template_full:
+        file_template_full = re.sub(
+            r"#+",
+            lambda x: "%%0%dd" % len(x.group(0)),
+            file_template_full.replace("%", "%%"),
+            count=1,
+        )
+    return file_template_full

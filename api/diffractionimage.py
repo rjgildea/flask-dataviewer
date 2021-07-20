@@ -13,7 +13,7 @@ from dxtbx.model.experiment_list import ExperimentListFactory
 from dials.command_line.export_bitmaps import imageset_as_bitmaps
 from dials.command_line.export_bitmaps import phil_scope
 
-from db import get_filepath_from_dc
+from db import get_file_template_full
 
 
 api_bp = Blueprint("diffractionimage", __name__)
@@ -47,9 +47,9 @@ class DataCollectionImage(Resource):
     def get(self):
         args = self.reqparse.parse_args()
 
-        h5exts = ["h5", "nxs"]
+        h5exts = {"h5", "nxs"}
 
-        dc_filepath = get_filepath_from_dc(args.dcid)
+        dc_filepath = get_file_template_full(args.dcid)
         if dc_filepath is None:
             logger.error(f"No such data collection {args.dcid}")
             abort(400, message="No such data collection")
