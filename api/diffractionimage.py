@@ -56,7 +56,7 @@ class DataCollectionImage(Resource):
             logging.getLogger('image-service').error('File not found: {}'.format(file))
             abort(400, message='No such file')
 
-        datablocks = DataBlockFactory.from_filenames([file], verbose=True)
+        datablocks = DataBlockFactory.from_filenames([file])
         if not len(datablocks):
             logging.getLogger('image-service').error('Could not parse data block')
             abort(400, message='Could not parse datablock')
