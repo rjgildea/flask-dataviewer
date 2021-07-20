@@ -13,7 +13,7 @@ from dxtbx.datablock import DataBlockFactory
 from dials.command_line.export_bitmaps import imageset_as_bitmaps
 from dials.command_line.export_bitmaps import phil_scope
 
-from db import get_dc
+from db import get_filepath_from_dc
 
 
 api_bp = Blueprint('diffractionimage', __name__)
@@ -38,20 +38,19 @@ class DataCollectionImage(Resource):
 
         h5exts = ['h5', 'nxs']
 
-        dc = get_dc(args.dcid)
-        if dc is None:
+        dc_filepath = get_filepath_from_dc(args.dcid)
+        if dc_filepath is None:
             logging.getLogger('image-service').error('No such data collection {}'.format(args.dcid))
             abort(400, message='No such data collection')
         
-        ext = os.path.splitext(str(dc.file_template_full_python))[1][1:].strip().lower()
+        ext = os.path.splitext(str(dc_filepath))[1][1:].strip().lower()
         if ext in h5exts:
-            file = str(dc.file_template_full_python)
+            file = str(dc_filepath)
         else:
-            file = dc.file_template_full_python % args.image
+            file = dc_filepath % args.image
 
 
         logging.getLogger('image-service').info('Processing image number: {} from file: {}'.format(args.image, file))
-#        print 'file', file, ext
         
         if not os.path.exists(file):
             logging.getLogger('image-service').error('File not found: {}'.format(file))
