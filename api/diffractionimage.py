@@ -61,7 +61,7 @@ class DataCollectionImage(Resource):
             file = dc_filepath % args.image
 
         logger.info(
-            f"Processing image number: {args.image} from file: {file}")
+            f"Processing image number: {args.image} from file: {file}"
         )
 
         if not os.path.exists(file):
