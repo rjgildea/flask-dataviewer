@@ -9,7 +9,7 @@ from flask import Blueprint, request, after_this_request, send_file
 from flask_restful import Resource, Api, reqparse, abort
 from flask_jwt_simple import jwt_required
 
-from dxtbx.datablock import DataBlockFactory
+from dxtbx.model.experiment_list import ExperimentListFactory
 from dials.command_line.export_bitmaps import imageset_as_bitmaps
 from dials.command_line.export_bitmaps import phil_scope
 
@@ -18,6 +18,9 @@ from db import get_filepath_from_dc
 
 api_bp = Blueprint('diffractionimage', __name__)
 api = Api(api_bp)
+
+
+logger = logging.getLogger("image-service")
 
 
 class DataCollectionImage(Resource):
@@ -56,13 +59,12 @@ class DataCollectionImage(Resource):
             logging.getLogger('image-service').error('File not found: {}'.format(file))
             abort(400, message='No such file')
 
-        datablocks = DataBlockFactory.from_filenames([file])
-        if not len(datablocks):
-            logging.getLogger('image-service').error('Could not parse data block')
-            abort(400, message='Could not parse datablock')
+        expts = ExperimentListFactory.from_filenames([file])
+        if not len(expts):
+            logger.error(f"Could not load imageset from {file}")
+            abort(400, message="Could not parse datablock")
 
-        datablock = datablocks[0]
-        imageset = datablock.extract_imagesets()[0]
+        imageset = expts.imagesets()[0]
 
         if ext in h5exts:
             image = imageset[(args.image-1):args.image]
