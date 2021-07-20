@@ -43,21 +43,22 @@ class DataCollectionImage(Resource):
 
         dc_filepath = get_filepath_from_dc(args.dcid)
         if dc_filepath is None:
-            logging.getLogger('image-service').error('No such data collection {}'.format(args.dcid))
-            abort(400, message='No such data collection')
-        
+            logger.error(f"No such data collection {args.dcid}")
+            abort(400, message="No such data collection")
+
         ext = os.path.splitext(str(dc_filepath))[1][1:].strip().lower()
         if ext in h5exts:
             file = str(dc_filepath)
         else:
             file = dc_filepath % args.image
 
+        logger.info(
+            f"Processing image number: {args.image} from file: {file}")
+        )
 
-        logging.getLogger('image-service').info('Processing image number: {} from file: {}'.format(args.image, file))
-        
         if not os.path.exists(file):
-            logging.getLogger('image-service').error('File not found: {}'.format(file))
-            abort(400, message='No such file')
+            logger.error(f"File not found: {file}")
+            abort(400, message="No such file")
 
         expts = ExperimentListFactory.from_filenames([file])
         if not len(expts):
