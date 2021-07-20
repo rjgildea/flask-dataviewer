@@ -16,7 +16,7 @@ from dials.command_line.export_bitmaps import phil_scope
 from db import get_filepath_from_dc
 
 
-api_bp = Blueprint('diffractionimage', __name__)
+api_bp = Blueprint("diffractionimage", __name__)
 api = Api(api_bp)
 
 
@@ -26,11 +26,19 @@ logger = logging.getLogger("image-service")
 class DataCollectionImage(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('image', type=int, required=True, help='No image number specified')
-        self.reqparse.add_argument('dcid', type=int, required=True, help='No data collection id specified')
-        self.reqparse.add_argument('binning', type=int, help='Binning must be a number')
-        self.reqparse.add_argument('quality', type=int, help='Quality must be a number between 1 and 100')
-        self.reqparse.add_argument('threshold', type=int, help='Enable thresholding, must be 1 or 0')
+        self.reqparse.add_argument(
+            "image", type=int, required=True, help="No image number specified"
+        )
+        self.reqparse.add_argument(
+            "dcid", type=int, required=True, help="No data collection id specified"
+        )
+        self.reqparse.add_argument("binning", type=int, help="Binning must be a number")
+        self.reqparse.add_argument(
+            "quality", type=int, help="Quality must be a number between 1 and 100"
+        )
+        self.reqparse.add_argument(
+            "threshold", type=int, help="Enable thresholding, must be 1 or 0"
+        )
 
         super(DataCollectionImage, self).__init__()
 
@@ -39,7 +47,7 @@ class DataCollectionImage(Resource):
     def get(self):
         args = self.reqparse.parse_args()
 
-        h5exts = ['h5', 'nxs']
+        h5exts = ["h5", "nxs"]
 
         dc_filepath = get_filepath_from_dc(args.dcid)
         if dc_filepath is None:
@@ -68,13 +76,13 @@ class DataCollectionImage(Resource):
         imageset = expts.imagesets()[0]
 
         if ext in h5exts:
-            image = imageset[(args.image-1):args.image]
+            image = imageset[(args.image - 1) : args.image]
         else:
             b0 = imageset.get_scan().get_batch_offset()
-            image = imageset[b0:b0+1]
+            image = imageset[b0 : b0 + 1]
 
         params = phil_scope.extract()
-        params.format = 'jpeg'
+        params.format = "jpeg"
 
         if args.quality:
             params.jpeg.quality = args.quality
@@ -83,10 +91,10 @@ class DataCollectionImage(Resource):
             params.binning = args.binning
 
         if args.threshold:
-            params.display = 'threshold'
+            params.display = "threshold"
             params.brightness = 1000
 
-        params.output.directory = '/tmp'
+        params.output.directory = "/tmp"
         params.output.prefix = str(time.time())
         params.imageset_index = 0
         names = imageset_as_bitmaps(image, params)
@@ -100,13 +108,14 @@ class DataCollectionImage(Resource):
             return response
 
         if args.threshold:
-            thresh = Image.open(names[0])#.convert('RGBA')
-            thresh = PIL.ImageOps.autocontrast(thresh, cutoff=50, ignore=(255,255,255))
+            thresh = Image.open(names[0])  # .convert('RGBA')
+            thresh = PIL.ImageOps.autocontrast(
+                thresh, cutoff=50, ignore=(255, 255, 255)
+            )
 
             thresh.save(names[0], quality=100)
-
 
         return send_file(names[0])
 
 
-api.add_resource(DataCollectionImage, '/dc/image')
+api.add_resource(DataCollectionImage, "/dc/image")
